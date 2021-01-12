@@ -291,52 +291,62 @@ class P4Test(unittest.TestCase):
 
     def test_in_bigger_graph(self):
         graph = Graph()
+        positions = [
+            (0, 0),
+            (0, 1),
+            (1, 0),
+            (0, 0.5),
+            (0.5, 0.5)
+        ]
 
-        # Base nodes
-        e1, e2, e3, e4, e5 = [gen_name() for _ in range(5)]
+        vx_e1 = gen_name()
+        vx_e2 = gen_name()
+        vx_e3 = gen_name()
+        vx_e12 = gen_name()
+        vx_e23 = gen_name()
+        graph.add_node(vx_e1, layer=0, position=positions[0], label='E')
+        graph.add_node(vx_e2, layer=0, position=positions[1], label='E')
+        graph.add_node(vx_e3, layer=0, position=positions[2], label='E')
+        graph.add_node(vx_e12, layer=0, position=positions[3], label='E')
+        graph.add_node(vx_e23, layer=0, position=positions[4], label='E')
 
-        # Additional nodes
-        e6, e7, e8, e9 = [gen_name() for _ in range(4)]
+        graph.add_edge(vx_e1, vx_e12)
+        graph.add_edge(vx_e12, vx_e2)
+        graph.add_edge(vx_e2, vx_e23)
+        graph.add_edge(vx_e23, vx_e3)
+        graph.add_edge(vx_e3, vx_e1)
 
-        graph.add_node(e1, layer=1, position=(1.0, 2.0), label='E')
-        graph.add_node(e2, layer=1, position=(1.0, 1.5), label='E')
-        graph.add_node(e3, layer=1, position=(1.0, 1.0), label='E')
-        graph.add_node(e4, layer=1, position=(2.0, 1.0), label='E')
-        graph.add_node(e5, layer=1, position=(1.5, 1.5), label='E')
+        vx_e1122 = gen_name()
+        graph.add_node(vx_e1122, layer=0, position=(-0.5, 0.5), label='E')
+        graph.add_edge(vx_e1, vx_e1122)
+        graph.add_edge(vx_e12, vx_e1122)
+        graph.add_edge(vx_e2, vx_e1122)
 
-        graph.add_node(e6, layer=1, position=(2.0, 2.0), label='E')
-        graph.add_node(e7, layer=1, position=(1.0, 0.0), label='E')
-        graph.add_node(e8, layer=1, position=(2.0, 0.0), label='E')
-        graph.add_node(e9, layer=1, position=(1.5, -1.0), label='E')
+        vx_e2233 = gen_name()
+        graph.add_node(vx_e2233, layer=0, position=(1, 1), label='E')
+        graph.add_edge(vx_e2, vx_e2233)
+        graph.add_edge(vx_e23, vx_e2233)
+        graph.add_edge(vx_e3, vx_e2233)
 
-        graph.add_edge(e1, e2)
-        graph.add_edge(e2, e3)
-        graph.add_edge(e3, e4)
-        graph.add_edge(e4, e5)
-        graph.add_edge(e5, e1)
+        vx_e13 = gen_name()
+        graph.add_node(vx_e13, layer=0, position=(0.5, -0.5), label='E')
+        graph.add_edge(vx_e1, vx_e13)
+        graph.add_edge(vx_e3, vx_e13)
 
-        graph.add_edge(e1, e6)
-        graph.add_edge(e6, e5)
-
-        graph.add_edge(e7, e3)
-        graph.add_edge(e7, e8)
-        graph.add_edge(e7, e9)
-
-        graph.add_edge(e8, e4)
-        graph.add_edge(e8, e9)
-
-        I = add_interior(graph, e1, e3, e4)
-        I1 = add_interior(graph, e1, e5, e6)
-        I2 = add_interior(graph, e7, e8, e4)
-        I3 = add_interior(graph, e7, e8, e9)
+        I = add_interior(graph, vx_e1, vx_e2, vx_e3)
+        I1 = add_interior(graph, vx_e1122, vx_e1, vx_e12)
+        I2 = add_interior(graph, vx_e1122, vx_e12, vx_e2)
+        I3 = add_interior(graph, vx_e2233, vx_e2, vx_e23)
+        I4 = add_interior(graph, vx_e2233, vx_e23, vx_e3)
+        I5 = add_interior(graph, vx_e1, vx_e3, vx_e13)
 
         visualize_graph_3d(graph)
         pyplot.show()
 
         [i1, i2, i3] = P4().apply(graph, [I])
 
-        self.assertEqual(len(graph.nodes()), 21)
-        self.assertEqual(len(graph.edges()), 43)
+        self.assertEqual(len(graph.nodes()), 22)
+        self.assertEqual(len(graph.edges()), 50)
 
         self.assertEqual(graph.nodes[I]['label'], 'i')
         self.assertTrue(graph.has_edge(I, i1))
